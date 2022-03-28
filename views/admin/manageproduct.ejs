@@ -1,0 +1,270 @@
+<%-include('../headers.ejs')%>
+<script>
+  function getcategory() {
+    
+    let xml = new XMLHttpRequest();
+    
+    let category = document.getElementById('category');
+    xml.onreadystatechange = function() {
+      if(this.readyState ===4 && this.status === 200) {
+        // console.log(this.response)
+        let rows = JSON.parse(this.response);
+        // console.log(rows)
+        let select = '<option value="">Select item</option>'
+        for(i=0;i<rows.length;i++) {
+          select += `<option value="${rows[i].categoryName}">${rows[i].categoryName}</option>`
+          // console.log(rows[1].categoryName)
+
+        }
+        category.innerHTML = select;
+      }
+    }
+    xml.open('GET','/admin/get-category', true);
+    xml.send();
+  }
+
+  function getSubCategory(value) {
+    // console.log(value);
+    let subcategory = document.getElementById('subcategory');
+    let select = '<option value="">select item</option>';
+    const xml = new XMLHttpRequest();
+    xml.onreadystatechange =function() {
+      if(this.status === 200 && this.readyState ===4) {
+        console.log(this.response);
+        let rows =JSON.parse(this.response);
+        for(i=0;i<rows.length;i++) {
+          select +=`<option value="${rows[i].subcategoryname}">${rows[i].subcategoryname}</option>`
+        }
+        subcategory.innerHTML = select;
+      }
+    }
+    xml.open('GET','/admin/get-subcategory?category='+value,true);
+    xml.send();
+  }
+
+  function addproduct() {
+    // let formControls = document.getElementById('product').elements;
+
+    //     let formData = new FormData();
+
+    //     for (let i = 0; i < formControls.length; i++) {
+    //         if (formControls[i].type !== 'button') {
+    //             if (formControls[i].type === 'file') {
+    //                 formData.append(formControls[i].name, formControls[i].files[0]);
+    //             } else {
+    //                 formData.append(formControls[i].name, formControls[i].value);
+    //             }
+    //         }
+    //     }
+    let productId = document.getElementById('productId').value;
+    let category = document.getElementById('category').value;
+    let subcategory = document.getElementById('subcategory').value;
+    let productname = document.getElementById('productname').value;
+    let productprice = document.getElementById('productprice').value;
+    let discount = document.getElementById('discount').value;
+    let photo = document.getElementById('productphoto').files[0];
+    // console.log(photo)
+    let formData = new FormData() 
+
+      if(document.getElementById('action').value === undefined) {
+    formData.append('category',category)
+    formData.append('subcategory',subcategory)
+    formData.append('productname',productname)
+    formData.append('productprice',productprice)
+    formData.append('discount',discount)
+    formData.append('photo',photo)
+
+    const xml = new XMLHttpRequest();
+    xml.onreadystatechange =function() {
+      if(this.status === 200 && this.readyState ===4) {
+        console.log(this.response);
+        
+                    getProduct();
+                    // document.getElementById('product').reset();
+                    // alert('Product Added Successfully.');
+                
+      }
+    }
+    // xml.open('GET',`/admin/add-product?category=${category}&subcategory${subcategory}&productname=${productname}&productprice${productprice}&discount=${discount}&productphoto=${productphoto}`,true);
+      xml.open('POST','/admin/add-product',true)
+    xml.send(formData);    
+      } else {
+    formData.append('productId',productId)
+    formData.append('productname',productname)
+    formData.append('productprice',productprice)
+    formData.append('discount',discount)
+    formData.append('productphoto',photo)
+    const xml = new XMLHttpRequest();
+    xml.onreadystatechange =function() {
+      if(this.status === 200 && this.readyState ===4) {
+        console.log(this.response);
+                    getProduct();
+      }
+    }
+    xml.open('POST','/admin/update-product1',true)
+    xml.send(formData);    
+       
+  
+  }
+
+  }
+
+  function getProduct() {
+    let table = `<table class="table table-bordered table-dark">`;
+      table +=`<thead><tr><th>Product-name</th><th>Product-Price</th><th>Discount</th><th>Product-Photo</th><th colspan="2" class="text-center">controllers</th></tr></thead>`
+        table +=`<tbody>`;
+          
+        const xml = new XMLHttpRequest();
+    xml.onreadystatechange =function() {
+      if(this.status === 200 && this.readyState ===4) {
+        //console.log(this.response);
+        let rows = JSON.parse(this.response);
+        if(rows.length >0) {
+          for(i=0;i<rows.length;i++) {
+            table +=`<tr>`
+            table +=`<td>${rows[i].productname}</td>`
+            table +=`<td>${rows[i].productprice}</td>`
+            table +=`<td>${rows[i].discount}</td>`
+            table +=`<td><img src="/${rows[i].productPhoto}" height="50" alt="img"> </td>`
+            table +=`<td><button type="button" onclick="deleteProduct(${rows[i].id})" class="btn btn-danger">Delete</button></td>`
+            table +=`<td><button type="button" data-toggle="modal" data-target="#myModal" onclick="updateProduct(${rows[i].id})" class="btn btn-primary">Update</button></td>`
+            table +=`</tr>`
+
+          }
+          table +=`</tbody></table>`
+          document.getElementById('responce').innerHTML = table
+        } else {
+          document.getElementById('responce').innerHTML = '<p class="alert alert-danger">product is empty</p>'
+        }  
+        
+        
+      }
+    }
+      xml.open('GET','/admin/get-product',true)
+    xml.send();
+  }
+  function deleteProduct(val) {
+    console.log(val)
+    const xml = new XMLHttpRequest();
+    xml.onreadystatechange =function() {
+      if(this.status === 200 && this.readyState ===4) {
+        console.log(this.response);
+        getProduct();
+      }
+    }
+    let formData = new FormData()
+    formData.append('id',val)
+    xml.open('POST','/admin/delete-product',true);
+    xml.send(formData); 
+  }
+  
+  function updateProduct(id) {
+    console.log(id)
+
+    let category = document.getElementById('cate');
+    let subcategory = document.getElementById('subcategory');
+    let productname = document.getElementById('productname');
+    let productprice = document.getElementById('productprice');
+    let discount = document.getElementById('discount');
+    let photo = document.getElementById('productphoto');
+    const xml = new XMLHttpRequest();
+    xml.onreadystatechange =function() {
+      if(this.status === 200 && this.readyState ===4) {
+        console.log(this.response);
+        let rows = JSON.parse(this.response);
+        if(rows.length>0) {
+          document.getElementById('mHead').innerText = 'Update Product';
+            category.hidden = 'true';
+            document.getElementById('productId').value = rows[0].id;
+            document.getElementById('action').value = 'update';
+          //   subcategory.value = rows[0].subcategory;
+            productname.value = rows[0].productname;
+            productprice.value = rows[0].productprice;
+            discount.value = rows[0].discount;
+            photo.src = rows[0].productPhoto;
+        } 
+      }
+    }
+    let formData = new FormData()
+    formData.append('id',id)
+    xml.open('POST','/admin/update-product',true);
+    xml.send(formData); 
+  }
+  function go() {
+    getProduct()
+    getcategory()
+  }
+</script>
+</head>
+<body onload="go()">
+  
+<%-include('../adminbar.ejs')%>
+<div class="container">
+
+<!-- Trigger the modal with a button -->
+<button type="button" class="btn btn-info btn-lg" data-toggle="modal" data-target="#myModal">Add Product</button>
+
+<!-- Modal -->
+<div id="myModal" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+
+    <!-- Modal content-->
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 id="mHead" >Add Product</h4>
+      </div>
+      <div class="modal-body">
+        <form id="product" class="form-group">
+          <div id="cate" class="row">
+            <div class="col-md-6">
+              <label for="category">Category</label>
+              <select name="category" onchange="getSubCategory(this.value)" id="category"class="form-control">
+                
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label for="subcategory">Sub-Category</label>
+              <select name="subcategory" id="subcategory"class="form-control">
+                <option value="">select</option>
+              </select>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-6">
+              <label for="productname">Product-name</label>
+              <input type="text" name="productname"class="form-control" id="productname">
+            
+            </div>
+            <div class="col-md-6">
+              <label for="photo">Product-Price</label>
+              <input class="form-control"type="text" name="productprice" id="productprice">
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-6">
+              <label for="productphoto">Product-Photo</label>
+              <input class="form-control" type="file" name="productphoto" id="productphoto">
+            </div>
+            <div class="col-md-6">
+              <label for="discount">Discount(%)</label>
+              <input class="form-control" type="text" name="discount" id="discount">
+            </div>
+            
+          </div>
+          <input type="hidden" id="action" name="action">
+          <input type="hidden" id="productId" name="productId">
+          <button class="btn btn-primary btn-hover" type="button" onclick="addproduct()">submit</button>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+  <div id="responce">ff</div>
+</div>
+
+</body>
+</html>

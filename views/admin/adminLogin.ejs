@@ -1,0 +1,57 @@
+<%-include('../headers.ejs')%>
+<script>
+    function go() {
+    let email = document.getElementById('email').value;
+    let password = document.getElementById('password').value;
+    let xml = new XMLHttpRequest();
+    let formData = new FormData();
+    formData.append('email',email);
+    formData.append('password',password)
+
+    let category = document.getElementById('category');
+    xml.onreadystatechange = function() {
+      if(this.readyState ===4 && this.status === 200) {
+        console.log(this.response)
+        if(this.response == 'success') {
+                window.location.href ="/admin/";
+        } else {
+            document.getElementById('responce').innerHTML ='<h3 class="text-center text-danger">Invalid Email or Password<h3>';
+
+        }
+        }
+      }
+    
+    xml.open('POST','/admin/admin-login', true);
+    xml.send(formData);
+    }
+</script>
+</head>
+<body>
+    <%-include('../homebar.ejs')%>
+    
+    <div class="container">
+        <h2 class="text-center text-success">Admin Login</h2>
+        <div class="col-md-6 offset-3 jumbotron">
+            <div id="responce"></div>
+            <form>
+                <div class="form-group">
+                    <div class="col-md-10 mb-4 offset-1">
+                        <label for="email">Email</label>
+                        <input type="email" class="form-control" name="email" id="email">
+                    </div>
+                    <div class="col-md-10 mb-4 offset-1">
+                        <label for="password">Password</label>
+                        <input type="password" class="form-control" name="password" id="password">
+                    </div>
+                    <div class="col-md-10 offset-1">
+                       <button onclick="go()" type="button" class="btn btn-primary btn-hover">Login</button>
+                    </div>
+                <div class="col-md-10 offset-1">
+                    <a href="/admin/admin-forgot-password">forget password</a>
+                </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</body>
+</html>
